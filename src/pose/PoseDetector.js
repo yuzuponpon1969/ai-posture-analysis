@@ -2,6 +2,8 @@
  * PoseDetector - MediaPipe Pose統合
  */
 
+import { Pose } from '@mediapipe/pose';
+
 export class PoseDetector {
     constructor() {
         this.pose = null;
@@ -12,14 +14,9 @@ export class PoseDetector {
         console.log('📡 MediaPipe Poseを初期化中...');
 
         try {
-            // グローバルに読み込まれたMediaPipe Poseを使用
-            if (!window.Pose) {
-                throw new Error('MediaPipe Poseが読み込まれていません');
-            }
-
-            this.pose = new window.Pose({
+            this.pose = new Pose({
                 locateFile: (file) => {
-                    return `https://unpkg.com/@mediapipe/pose@0.5/${file}`;
+                    return `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${file}`;
                 }
             });
 
@@ -83,24 +80,62 @@ export class PoseDetector {
             return;
         }
 
-        // グローバルに読み込まれた描画関数を使用
-        if (window.drawConnectors && window.drawLandmarks) {
-            // 接続線を描画
-            window.drawConnectors(ctx, poseResults.poseLandmarks, window.POSE_CONNECTIONS, {
-                color: '#00FF00',
-                lineWidth: 4
-            });
+        // ランドマークを手動で描画
+        this.drawLandmarksManually(ctx, poseResults.poseLandmarks);
+        this.drawConnectionsManually(ctx, poseResults.poseLandmarks);
+    }
 
-            // ランドマークを描画
-            window.drawLandmarks(ctx, poseResults.poseLandmarks, {
-                color: '#FF0000',
-                fillColor: '#FF0000',
-                lineWidth: 2,
-                radius: 6
-            });
-        } else {
-            console.warn('描画ユーティリティが読み込まれていません');
-        }
+    /**
+     * ランドマークを手動で描画
+     */
+    drawLandmarksManually(ctx, landmarks) {
+        landmarks.forEach((landmark, index) => {
+            const x = landmark.x * ctx.canvas.width;
+            const y = landmark.y * ctx.canvas.height;
+
+            ctx.beginPath();
+            ctx.arc(x, y, 6, 0, 2 * Math.PI);
+            ctx.fillStyle = '#FF0000';
+            ctx.fill();
+            ctx.strokeStyle = '#FF0000';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        });
+    }
+
+    /**
+     * 接続線を手動で描画
+     */
+    drawConnectionsManually(ctx, landmarks) {
+        const connections = [
+            [11, 12], // 左肩-右肩
+            [11, 13], // 左肩-左肘
+            [13, 15], // 左肘-左手首
+            [12, 14], // 右肩-右肘
+            [14, 16], // 右肘-右手首
+            [11, 23], // 左肩-左股関節
+            [12, 24], // 右肩-右股関節
+            [23, 24], // 左股関節-右股関節
+            [23, 25], // 左股関節-左膝
+            [25, 27], // 左膝-左足首
+            [24, 26], // 右股関節-右膝
+            [26, 28], // 右膝-右足首
+        ];
+
+        ctx.strokeStyle = '#00FF00';
+        ctx.lineWidth = 4;
+
+        connections.forEach(([start, end]) => {
+            const startPoint = landmarks[start];
+            const endPoint = landmarks[end];
+
+            if (startPoint && endPoint) {
+                ctx.beginPath();
+                ctx.moveTo(startPoint.x * ctx.canvas.width, startPoint.y * ctx.canvas.height);
+                ctx.lineTo(endPoint.x * ctx.canvas.width, endPoint.y * ctx.canvas.height);
+                ctx.stroke();
+            }
+        });
     }
 
     /**
