@@ -1,7 +1,7 @@
 {
   "name": "ai-posture-analysis",
   "version": "1.0.0",
-  "description": "AI姿勢分析アプリ（ケンダル法） - MediaPipe Poseを使用した静止姿勢評価",
+  "description": "AI姿勢分析アプリ（ケンダル法） - TensorFlow.js Pose Detectionを使用した静止姿勢評価",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -19,9 +19,8 @@
   "author": "yuzuponpon1969",
   "license": "MIT",
   "dependencies": {
-    "@mediapipe/pose": "^0.5.1635989137",
-    "@mediapipe/camera_utils": "^0.3.1632432234",
-    "@mediapipe/drawing_utils": "^0.3.1620248257"
+    "@tensorflow-models/pose-detection": "^2.1.3",
+    "@tensorflow/tfjs": "^4.22.0"
   },
   "devDependencies": {
     "vite": "^5.0.0"

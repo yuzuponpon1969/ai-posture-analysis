@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediaPipe Pose Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        #status {
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .loading { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>MediaPipe Pose 読み込みテスト</h1>
+    <div id="status" class="loading">テスト中...</div>
+    <div id="details"></div>
+
+    <script type="module">
+        const statusEl = document.getElementById('status');
+        const detailsEl = document.getElementById('details');
+
+        async function testMediaPipe() {
+            try {
+                statusEl.textContent = '1. @mediapipe/poseをインポート中...';
+                const { Pose } = await import('@mediapipe/pose');
+                
+                detailsEl.innerHTML += '<p>✅ @mediapipe/poseのインポート成功</p>';
+                
+                statusEl.textContent = '2. Poseインスタンスを作成中...';
+                const pose = new Pose({
+                    locateFile: (file) => {
+                        const path = `https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5.1675469404/${file}`;
+                        detailsEl.innerHTML += `<p>📂 Loading: ${file} from ${path}</p>`;
+                        return path;
+                    }
+                });
+                
+                detailsEl.innerHTML += '<p>✅ Poseインスタンスの作成成功</p>';
+                
+                statusEl.textContent = '3. オプションを設定中...';
+                pose.setOptions({
+                    modelComplexity: 1,
+                    smoothLandmarks: true,
+                    minDetectionConfidence: 0.5,
+                    minTrackingConfidence: 0.5
+                });
+                
+                detailsEl.innerHTML += '<p>✅ オプション設定成功</p>';
+                
+                statusEl.textContent = '✅ すべてのテストが成功しました！';
+                statusEl.className = 'success';
+                
+            } catch (error) {
+                statusEl.textContent = '❌ エラーが発生しました';
+                statusEl.className = 'error';
+                detailsEl.innerHTML += `<p style="color: red;">❌ エラー: ${error.message}</p>`;
+                detailsEl.innerHTML += `<pre>${error.stack}</pre>`;
+                console.error(error);
+            }
+        }
+
+        testMediaPipe();
+    </script>
+</body>
+</html>
