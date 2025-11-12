@@ -3,6 +3,7 @@
  */
 
 import * as poseDetection from '@tensorflow-models/pose-detection';
+import * as tf from '@tensorflow/tfjs';
 import '@tensorflow/tfjs-backend-webgl';
 
 export class PoseDetector {
@@ -15,6 +16,11 @@ export class PoseDetector {
         console.log('📡 TensorFlow.js Pose Detectionを初期化中...');
 
         try {
+            // WebGLバックエンドを明示的に設定
+            await tf.setBackend('webgl');
+            await tf.ready();
+            console.log('✅ TensorFlow.js Backend (WebGL) 初期化完了');
+
             // MoveNet Lightningモデルを使用（高速で精度も良い）
             this.detector = await poseDetection.createDetector(
                 poseDetection.SupportedModels.MoveNet,
