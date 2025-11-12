@@ -19,7 +19,7 @@ export class PoseDetector {
 
             this.pose = new window.Pose({
                 locateFile: (file) => {
-                    return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
+                    return `https://unpkg.com/@mediapipe/pose@0.5/${file}`;
                 }
             });
 
