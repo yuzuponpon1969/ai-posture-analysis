@@ -196,16 +196,25 @@ section h2 {
 .preview-container {
     position: relative;
     max-width: 800px;
+    max-height: 600px;
     margin: 0 auto 20px;
     background: #000;
     border-radius: 12px;
     overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-#poseCanvas {
-    width: 100%;
+#poseCanvas,
+#lateralCanvas,
+#frontalCanvas {
+    max-width: 100%;
+    max-height: 600px;
+    width: auto;
     height: auto;
     display: block;
+    object-fit: contain;
 }
 
 .action-buttons {
@@ -505,10 +514,14 @@ section h2 {
 .image-preview {
     position: relative;
     margin-top: 15px;
+    max-height: 500px;
+    overflow: hidden;
 }
 
 .image-preview img {
     width: 100%;
+    max-height: 500px;
+    object-fit: contain;
     border-radius: 8px;
     box-shadow: var(--shadow);
 }

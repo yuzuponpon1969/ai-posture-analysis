@@ -62,10 +62,11 @@ export class KendallAnalyzer {
         const horizontalDistance = Math.abs(ear.x - shoulder.x);
 
         // 理想値: 0（耳が肩の真上）
-        // 許容範囲: 0.03以内は良好、0.05以上は問題
+        // 厳密な評価: 0.01以内で優秀、0.02で良好、0.03以上で注意
         let score = 100;
-        if (horizontalDistance > 0.03) {
-            score = Math.max(0, 100 - (horizontalDistance - 0.03) * 2000);
+        if (horizontalDistance > 0.01) {
+            // 0.01を超えたら減点開始（より厳しく）
+            score = Math.max(0, 100 - (horizontalDistance - 0.01) * 1500);
         }
 
         // 角度を計算（参考値）
@@ -100,10 +101,10 @@ export class KendallAnalyzer {
         const idealShoulderX = (ear.x + hip.x) / 2;
         const deviation = Math.abs(shoulder.x - idealShoulderX);
 
-        // スコア計算
+        // スコア計算（より厳しく）
         let score = 100;
-        if (deviation > 0.02) {
-            score = Math.max(0, 100 - (deviation - 0.02) * 2500);
+        if (deviation > 0.015) {
+            score = Math.max(0, 100 - (deviation - 0.015) * 2000);
         }
 
         // 肩の傾き角度
@@ -193,10 +194,10 @@ export class KendallAnalyzer {
         const angle = Math.atan2(horizontalDistance, verticalDistance) * (180 / Math.PI);
         
         // 理想: 角度が0度に近い（完全に垂直）
-        // 許容範囲: 5度以内は優秀、10度以内は良好
+        // 厳密な評価: 3度以内で優秀、5度で良好、8度以上で注意
         let score = 100;
-        if (angle > 5) {
-            score = Math.max(0, 100 - (angle - 5) * 10);
+        if (angle > 3) {
+            score = Math.max(0, 100 - (angle - 3) * 12);
         }
 
         return {
@@ -226,10 +227,10 @@ export class KendallAnalyzer {
         // 水平方向の距離を計算
         const horizontalDistance = Math.abs(knee.x - hip.x);
 
-        // スコア計算
+        // スコア計算（より厳しく）
         let score = 100;
-        if (horizontalDistance > 0.03) {
-            score = Math.max(0, 100 - (horizontalDistance - 0.03) * 2000);
+        if (horizontalDistance > 0.02) {
+            score = Math.max(0, 100 - (horizontalDistance - 0.02) * 1800);
         }
 
         // 角度計算
@@ -262,10 +263,10 @@ export class KendallAnalyzer {
         // 水平方向の距離を計算
         const horizontalDistance = Math.abs(ankle.x - knee.x);
 
-        // スコア計算
+        // スコア計算（より厳しく）
         let score = 100;
-        if (horizontalDistance > 0.03) {
-            score = Math.max(0, 100 - (horizontalDistance - 0.03) * 2000);
+        if (horizontalDistance > 0.02) {
+            score = Math.max(0, 100 - (horizontalDistance - 0.02) * 1800);
         }
 
         // 角度計算
