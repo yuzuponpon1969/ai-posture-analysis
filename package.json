@@ -1,0 +1,29 @@
+{
+  "name": "ai-posture-analysis",
+  "version": "1.0.0",
+  "description": "AI姿勢分析アプリ（ケンダル法） - MediaPipe Poseを使用した静止姿勢評価",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "posture",
+    "analysis",
+    "kendall",
+    "mediapipe",
+    "pose",
+    "physical-therapy"
+  ],
+  "author": "yuzuponpon1969",
+  "license": "MIT",
+  "dependencies": {
+    "@mediapipe/pose": "^0.5.1635989137",
+    "@mediapipe/camera_utils": "^0.3.1632432234",
+    "@mediapipe/drawing_utils": "^0.3.1620248257"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

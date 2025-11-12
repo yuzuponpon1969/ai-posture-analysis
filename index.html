@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI姿勢分析アプリ（ケンダル法）</title>
+    <link rel="stylesheet" href="/src/styles/main.css">
+</head>
+<body>
+    <!-- ヘッダー -->
+    <header class="app-header">
+        <div class="container">
+            <h1>🧍 AI姿勢分析アプリ</h1>
+            <p class="subtitle">ケンダル法による静止姿勢評価</p>
+        </div>
+    </header>
+
+    <!-- メインコンテンツ -->
+    <main class="container">
+        <!-- 入力セクション -->
+        <section class="input-section">
+            <h2>📸 画像入力</h2>
+            
+            <!-- タブ切り替え -->
+            <div class="input-tabs">
+                <button class="tab-btn active" data-tab="upload">
+                    📁 画像アップロード
+                </button>
+                <button class="tab-btn" data-tab="camera">
+                    📷 Webカメラ撮影
+                </button>
+            </div>
+
+            <!-- アップロードタブ -->
+            <div class="tab-content active" data-tab="upload">
+                <div class="upload-area">
+                    <label for="imageUpload" class="upload-label">
+                        <div class="upload-icon">📤</div>
+                        <p>側面観の画像をドラッグ＆ドロップ</p>
+                        <p class="upload-hint">または、クリックしてファイルを選択</p>
+                        <input type="file" id="imageUpload" accept="image/*" hidden>
+                    </label>
+                </div>
+            </div>
+
+            <!-- カメラタブ -->
+            <div class="tab-content" data-tab="camera">
+                <div class="camera-area">
+                    <div class="camera-preview">
+                        <video id="cameraVideo" autoplay playsinline></video>
+                        <canvas id="cameraCanvas"></canvas>
+                    </div>
+                    <div class="camera-controls">
+                        <button id="startCamera" class="btn btn-primary">
+                            📹 カメラを起動
+                        </button>
+                        <button id="capturePhoto" class="btn btn-secondary" disabled>
+                            📸 撮影する
+                        </button>
+                        <button id="stopCamera" class="btn btn-danger" disabled>
+                            ⏹️ カメラを停止
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 解析セクション -->
+        <section class="analysis-section" id="analysisSection" style="display: none;">
+            <h2>🔍 解析結果</h2>
+            
+            <!-- 画像プレビュー -->
+            <div class="preview-container">
+                <canvas id="poseCanvas"></canvas>
+            </div>
+
+            <!-- 解析ボタン -->
+            <div class="action-buttons">
+                <button id="analyzeBtn" class="btn btn-primary">
+                    🔍 姿勢を解析
+                </button>
+                <button id="resetBtn" class="btn btn-secondary">
+                    🔄 リセット
+                </button>
+            </div>
+
+            <!-- ローディング表示 -->
+            <div id="loadingIndicator" class="loading-indicator" style="display: none;">
+                <div class="spinner"></div>
+                <p>解析中...</p>
+            </div>
+        </section>
+
+        <!-- 結果セクション -->
+        <section class="results-section" id="resultsSection" style="display: none;">
+            <h2>📊 評価結果</h2>
+            
+            <!-- 総合スコア -->
+            <div class="score-summary">
+                <div class="total-score">
+                    <span class="score-label">総合スコア</span>
+                    <span class="score-value" id="totalScore">-</span>
+                    <span class="score-max">/100</span>
+                </div>
+            </div>
+
+            <!-- 詳細評価 -->
+            <div class="detailed-scores" id="detailedScores">
+                <!-- JavaScriptで動的に生成 -->
+            </div>
+
+            <!-- レポート生成 -->
+            <div class="report-section">
+                <button id="generateReportBtn" class="btn btn-success">
+                    📄 Googleスライドレポートを生成
+                </button>
+                
+                <!-- スライドURL表示エリア -->
+                <div id="slideUrlContainer" class="slide-url-container" style="display: none;">
+                    <h3>📊 生成されたGoogleスライド</h3>
+                    <div class="url-box">
+                        <input type="text" id="slideUrl" readonly>
+                        <button id="copyUrlBtn" class="btn-icon" title="URLをコピー">📋</button>
+                    </div>
+                    <button id="openSlideBtn" class="btn btn-primary">
+                        🔗 Googleスライドを開く
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- フッター -->
+    <footer class="app-footer">
+        <div class="container">
+            <p>&copy; 2025 AI姿勢分析アプリ | MediaPipe Pose + ケンダル法</p>
+        </div>
+    </footer>
+
+    <!-- メインスクリプト -->
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
