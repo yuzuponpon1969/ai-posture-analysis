@@ -55,9 +55,9 @@ export class PoseDetector {
                     const poses = await this.detector.estimatePoses(img);
                     
                     if (poses && poses.length > 0) {
-                        // MediaPipe形式に変換
+                        // MediaPipe形式に変換（画像サイズを渡す）
                         const pose = poses[0];
-                        const landmarks = this.convertToMediaPipeFormat(pose.keypoints);
+                        const landmarks = this.convertToMediaPipeFormat(pose.keypoints, img.width, img.height);
                         
                         resolve({
                             poseLandmarks: landmarks
@@ -82,7 +82,7 @@ export class PoseDetector {
     /**
      * TensorFlow.js keypointsをMediaPipe形式に変換
      */
-    convertToMediaPipeFormat(keypoints) {
+    convertToMediaPipeFormat(keypoints, imageWidth, imageHeight) {
         // MoveNetのキーポイントインデックス
         const moveNetToMediaPipe = {
             0: 0,   // nose
@@ -116,14 +116,22 @@ export class PoseDetector {
         keypoints.forEach((keypoint, index) => {
             const mediaPipeIndex = moveNetToMediaPipe[index];
             if (mediaPipeIndex !== undefined) {
-                // 画像座標を正規化（0-1の範囲に）
+                // MoveNetは既に正規化された座標（0-1）を返すのでそのまま使用
+                // ただし、y座標は画像の高さで正規化する必要がある場合がある
                 mediaPipeLandmarks[mediaPipeIndex] = {
-                    x: keypoint.x,
-                    y: keypoint.y,
+                    x: keypoint.x / imageWidth,
+                    y: keypoint.y / imageHeight,
                     z: 0,
                     visibility: keypoint.score || 0
                 };
             }
+        });
+
+        console.log('🔍 変換されたランドマーク（サンプル）:', {
+            nose: mediaPipeLandmarks[0],
+            leftShoulder: mediaPipeLandmarks[11],
+            leftHip: mediaPipeLandmarks[23],
+            imageSize: { width: imageWidth, height: imageHeight }
         });
 
         return mediaPipeLandmarks;
@@ -197,9 +205,15 @@ export class PoseDetector {
 
             if (startPoint && endPoint && 
                 startPoint.visibility > 0.5 && endPoint.visibility > 0.5) {
+                // 正規化座標をピクセル座標に変換
+                const startX = startPoint.x * ctx.canvas.width;
+                const startY = startPoint.y * ctx.canvas.height;
+                const endX = endPoint.x * ctx.canvas.width;
+                const endY = endPoint.y * ctx.canvas.height;
+
                 ctx.beginPath();
-                ctx.moveTo(startPoint.x, startPoint.y);
-                ctx.lineTo(endPoint.x, endPoint.y);
+                ctx.moveTo(startX, startY);
+                ctx.lineTo(endX, endY);
                 ctx.stroke();
             }
         });
