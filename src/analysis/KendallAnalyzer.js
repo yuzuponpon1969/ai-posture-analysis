@@ -133,25 +133,36 @@ export class KendallAnalyzer {
         const shoulder = landmarks[this.LANDMARKS.LEFT_SHOULDER];
         const hip = landmarks[this.LANDMARKS.LEFT_HIP];
 
-        // 肩-股関節の角度を計算（垂直を90度とする）
-        const dx = shoulder.x - hip.x;
-        const dy = shoulder.y - hip.y;
-        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+        // 肩と股関節の水平距離を評価（垂直に近いほど良い）
+        const horizontalDistance = Math.abs(shoulder.x - hip.x);
         
-        // 理想角度: 90度（垂直）
-        const idealAngle = 90;
-        const angleDifference = Math.abs(angle - idealAngle);
-
-        // スコア計算
+        // 垂直距離（参考値）
+        const verticalDistance = Math.abs(shoulder.y - hip.y);
+        
+        // 角度を計算（垂直からの偏差）
+        // atan2で垂直線からの角度を計算
+        const angle = Math.atan2(horizontalDistance, verticalDistance) * (180 / Math.PI);
+        
+        // 理想: 角度が0度に近い（完全に垂直）
+        // 許容範囲: 5度以内は優秀、10度以内は良好
         let score = 100;
-        if (angleDifference > 5) {
-            score = Math.max(0, 100 - (angleDifference - 5) * 3);
+        if (angle > 5) {
+            score = Math.max(0, 100 - (angle - 5) * 10);
         }
+
+        console.log('🔍 脊柱アライメント計算:', {
+            shoulder: { x: shoulder.x, y: shoulder.y },
+            hip: { x: hip.x, y: hip.y },
+            horizontalDistance,
+            verticalDistance,
+            angle: angle.toFixed(1),
+            score: score.toFixed(0)
+        });
 
         return {
             name: '脊柱アライメント',
             score: score,
-            value: angleDifference.toFixed(1) + '°',
+            value: angle.toFixed(1) + '°',
             angle: angle.toFixed(1) + '°',
             description: this.getSpinalDescription(score)
         };
@@ -172,25 +183,26 @@ export class KendallAnalyzer {
         const hip = landmarks[this.LANDMARKS.LEFT_HIP];
         const knee = landmarks[this.LANDMARKS.LEFT_KNEE];
 
-        // 股関節-膝の角度を計算
-        const dx = knee.x - hip.x;
-        const dy = knee.y - hip.y;
-        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-
-        // 理想角度: 90度（垂直）
-        const idealAngle = 90;
-        const angleDifference = Math.abs(angle - idealAngle);
-
-        // スコア計算
+        // 股関節と膝の水平距離を評価（垂直に近いほど良い）
+        const horizontalDistance = Math.abs(knee.x - hip.x);
+        
+        // 垂直距離（参考値）
+        const verticalDistance = Math.abs(knee.y - hip.y);
+        
+        // 角度を計算（垂直からの偏差）
+        const angle = Math.atan2(horizontalDistance, verticalDistance) * (180 / Math.PI);
+        
+        // 理想: 角度が0度に近い（完全に垂直）
+        // 許容範囲: 5度以内は優秀、10度以内は良好
         let score = 100;
-        if (angleDifference > 5) {
-            score = Math.max(0, 100 - (angleDifference - 5) * 3);
+        if (angle > 5) {
+            score = Math.max(0, 100 - (angle - 5) * 10);
         }
 
         return {
             name: '骨盤傾斜',
             score: score,
-            value: angleDifference.toFixed(1) + '°',
+            value: angle.toFixed(1) + '°',
             angle: angle.toFixed(1) + '°',
             description: this.getPelvicDescription(score)
         };
