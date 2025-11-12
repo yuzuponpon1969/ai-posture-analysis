@@ -2,10 +2,6 @@
  * PoseDetector - MediaPipe Pose統合
  */
 
-import { Pose } from '@mediapipe/pose';
-import { drawConnectors, drawLandmarks } from '@mediapipe/drawing_utils';
-import { POSE_CONNECTIONS } from '@mediapipe/pose';
-
 export class PoseDetector {
     constructor() {
         this.pose = null;
@@ -16,7 +12,12 @@ export class PoseDetector {
         console.log('📡 MediaPipe Poseを初期化中...');
 
         try {
-            this.pose = new Pose({
+            // グローバルに読み込まれたMediaPipe Poseを使用
+            if (!window.Pose) {
+                throw new Error('MediaPipe Poseが読み込まれていません');
+            }
+
+            this.pose = new window.Pose({
                 locateFile: (file) => {
                     return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;
                 }
@@ -82,19 +83,24 @@ export class PoseDetector {
             return;
         }
 
-        // 接続線を描画
-        drawConnectors(ctx, poseResults.poseLandmarks, POSE_CONNECTIONS, {
-            color: '#00FF00',
-            lineWidth: 4
-        });
+        // グローバルに読み込まれた描画関数を使用
+        if (window.drawConnectors && window.drawLandmarks) {
+            // 接続線を描画
+            window.drawConnectors(ctx, poseResults.poseLandmarks, window.POSE_CONNECTIONS, {
+                color: '#00FF00',
+                lineWidth: 4
+            });
 
-        // ランドマークを描画
-        drawLandmarks(ctx, poseResults.poseLandmarks, {
-            color: '#FF0000',
-            fillColor: '#FF0000',
-            lineWidth: 2,
-            radius: 6
-        });
+            // ランドマークを描画
+            window.drawLandmarks(ctx, poseResults.poseLandmarks, {
+                color: '#FF0000',
+                fillColor: '#FF0000',
+                lineWidth: 2,
+                radius: 6
+            });
+        } else {
+            console.warn('描画ユーティリティが読み込まれていません');
+        }
     }
 
     /**
