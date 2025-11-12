@@ -1,5 +1,5 @@
 /**
- * UIController - UI状態管理とイベント処理
+ * UIController - UI状態管理とイベント処理（2方向対応）
  */
 
 export class UIController {
@@ -7,6 +7,7 @@ export class UIController {
         this.eventListeners = {};
         this.currentTab = 'upload';
         this.cameraStream = null;
+        this.currentCameraView = 'lateral'; // 'lateral' or 'frontal'
     }
 
     init() {
@@ -61,11 +62,22 @@ export class UIController {
     }
 
     /**
-     * 画像アップロード機能
+     * 画像アップロード機能（2方向対応）
      */
     setupImageUpload() {
-        const uploadArea = document.querySelector('.upload-area');
-        const fileInput = document.getElementById('imageUpload');
+        // 側面観
+        this.setupSingleImageUpload('lateral', 'lateralImageUpload', 'lateralUploadArea', 'lateralPreview', 'lateralPreviewImg', 'lateralRemove');
+        
+        // 正面観
+        this.setupSingleImageUpload('frontal', 'frontalImageUpload', 'frontalUploadArea', 'frontalPreview', 'frontalPreviewImg', 'frontalRemove');
+    }
+
+    setupSingleImageUpload(view, inputId, areaId, previewId, previewImgId, removeId) {
+        const uploadArea = document.getElementById(areaId);
+        const fileInput = document.getElementById(inputId);
+        const preview = document.getElementById(previewId);
+        const previewImg = document.getElementById(previewImgId);
+        const removeBtn = document.getElementById(removeId);
 
         // クリックでファイル選択
         uploadArea.addEventListener('click', () => {
@@ -76,7 +88,7 @@ export class UIController {
         fileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
-                this.handleImageFile(file);
+                this.handleImageFile(file, view, uploadArea, preview, previewImg);
             }
         });
 
@@ -96,20 +108,39 @@ export class UIController {
 
             const file = e.dataTransfer.files[0];
             if (file && file.type.startsWith('image/')) {
-                this.handleImageFile(file);
+                this.handleImageFile(file, view, uploadArea, preview, previewImg);
             } else {
                 alert('画像ファイルを選択してください');
             }
+        });
+
+        // 削除ボタン
+        removeBtn.addEventListener('click', () => {
+            preview.style.display = 'none';
+            uploadArea.style.display = 'block';
+            fileInput.value = '';
         });
     }
 
     /**
      * 画像ファイルを処理
      */
-    handleImageFile(file) {
+    handleImageFile(file, view, uploadArea, preview, previewImg) {
         const reader = new FileReader();
         reader.onload = (e) => {
-            this.emit('imageUploaded', e.target.result);
+            const imageData = e.target.result;
+            
+            // プレビュー表示
+            previewImg.src = imageData;
+            uploadArea.style.display = 'none';
+            preview.style.display = 'block';
+            
+            // イベント発火
+            if (view === 'lateral') {
+                this.emit('lateralImageUploaded', imageData);
+            } else {
+                this.emit('frontalImageUploaded', imageData);
+            }
         };
         reader.readAsDataURL(file);
     }
@@ -123,6 +154,8 @@ export class UIController {
         const stopBtn = document.getElementById('stopCamera');
         const video = document.getElementById('cameraVideo');
         const canvas = document.getElementById('cameraCanvas');
+        const statusText = document.getElementById('cameraStatusText');
+        const viewTitle = document.getElementById('cameraViewTitle');
 
         // カメラ起動
         startBtn.addEventListener('click', async () => {
@@ -134,6 +167,11 @@ export class UIController {
                 video.srcObject = this.cameraStream;
                 video.style.display = 'block';
                 canvas.style.display = 'none';
+
+                // 側面観から開始
+                this.currentCameraView = 'lateral';
+                statusText.textContent = '側面観を撮影してください';
+                viewTitle.textContent = '📸 撮影: 側面観';
 
                 // ボタン状態を更新
                 startBtn.disabled = true;
@@ -163,10 +201,24 @@ export class UIController {
 
             // 画像データを取得
             const imageData = canvas.toDataURL('image/jpeg');
-            this.emit('photoCapture', imageData);
+            
+            // イベント発火
+            this.emit('photoCapture', { view: this.currentCameraView, imageData });
 
-            // カメラを停止
-            this.stopCamera();
+            // 次の方向に切り替え
+            if (this.currentCameraView === 'lateral') {
+                this.currentCameraView = 'frontal';
+                statusText.textContent = '正面観を撮影してください（または停止）';
+                viewTitle.textContent = '📸 撮影: 正面観';
+                
+                // ビデオを再表示
+                video.style.display = 'block';
+                canvas.style.display = 'none';
+            } else {
+                // 両方撮影完了
+                statusText.textContent = '撮影完了！解析ボタンをクリックしてください';
+                this.stopCamera();
+            }
         });
 
         // カメラ停止
@@ -195,6 +247,11 @@ export class UIController {
         document.getElementById('startCamera').disabled = false;
         document.getElementById('capturePhoto').disabled = true;
         document.getElementById('stopCamera').disabled = true;
+        
+        // 状態をリセット
+        this.currentCameraView = 'lateral';
+        document.getElementById('cameraStatusText').textContent = '側面観を撮影してください';
+        document.getElementById('cameraViewTitle').textContent = '📸 撮影: 側面観';
     }
 
     /**
@@ -308,15 +365,31 @@ export class UIController {
      */
     reset() {
         // ファイル入力をクリア
-        document.getElementById('imageUpload').value = '';
+        document.getElementById('lateralImageUpload').value = '';
+        document.getElementById('frontalImageUpload').value = '';
+        
+        // プレビューを非表示
+        document.getElementById('lateralPreview').style.display = 'none';
+        document.getElementById('frontalPreview').style.display = 'none';
+        document.getElementById('lateralUploadArea').style.display = 'block';
+        document.getElementById('frontalUploadArea').style.display = 'block';
 
         // カメラを停止
         this.stopCamera();
 
         // Canvasをクリア
-        const canvas = document.getElementById('poseCanvas');
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const lateralCanvas = document.getElementById('lateralCanvas');
+        const frontalCanvas = document.getElementById('frontalCanvas');
+        
+        if (lateralCanvas) {
+            const ctx1 = lateralCanvas.getContext('2d');
+            ctx1.clearRect(0, 0, lateralCanvas.width, lateralCanvas.height);
+        }
+        
+        if (frontalCanvas) {
+            const ctx2 = frontalCanvas.getContext('2d');
+            ctx2.clearRect(0, 0, frontalCanvas.width, frontalCanvas.height);
+        }
 
         // スライドURLエリアを非表示
         document.getElementById('slideUrlContainer').style.display = 'none';

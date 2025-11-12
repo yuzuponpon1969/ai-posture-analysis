@@ -12,8 +12,16 @@ class PostureAnalysisApp {
         this.poseDetector = null;
         this.uiController = null;
         this.kendallAnalyzer = null;
-        this.currentImage = null;
-        this.currentPoseResults = null;
+        
+        // 2方向の画像とポーズ結果を保持
+        this.images = {
+            lateral: null,   // 側面観
+            frontal: null    // 正面観
+        };
+        this.poseResults = {
+            lateral: null,
+            frontal: null
+        };
     }
 
     async init() {
@@ -47,18 +55,29 @@ class PostureAnalysisApp {
             console.log('タブ切り替え:', tab);
         });
 
-        // 画像アップロード
-        this.uiController.on('imageUploaded', async (imageData) => {
-            console.log('画像がアップロードされました');
-            this.currentImage = imageData;
-            await this.displayImage(imageData);
+        // 側面観画像アップロード
+        this.uiController.on('lateralImageUploaded', async (imageData) => {
+            console.log('側面観画像がアップロードされました');
+            this.images.lateral = imageData;
+            this.checkAndShowAnalysisSection();
         });
 
-        // カメラ撮影
-        this.uiController.on('photoCapture', async (imageData) => {
-            console.log('写真が撮影されました');
-            this.currentImage = imageData;
-            await this.displayImage(imageData);
+        // 正面観画像アップロード
+        this.uiController.on('frontalImageUploaded', async (imageData) => {
+            console.log('正面観画像がアップロードされました');
+            this.images.frontal = imageData;
+            this.checkAndShowAnalysisSection();
+        });
+
+        // カメラ撮影（側面観・正面観）
+        this.uiController.on('photoCapture', async ({ view, imageData }) => {
+            console.log(`${view}が撮影されました`);
+            if (view === 'lateral') {
+                this.images.lateral = imageData;
+            } else {
+                this.images.frontal = imageData;
+            }
+            this.checkAndShowAnalysisSection();
         });
 
         // 解析ボタン
@@ -77,35 +96,20 @@ class PostureAnalysisApp {
         });
     }
 
-    async displayImage(imageData) {
-        const canvas = document.getElementById('poseCanvas');
-        const ctx = canvas.getContext('2d');
-
-        // 画像を読み込む
-        const img = new Image();
-        img.onload = () => {
-            // Canvasサイズを画像に合わせる
-            canvas.width = img.width;
-            canvas.height = img.height;
-
-            // 画像を描画
-            ctx.drawImage(img, 0, 0);
-
-            // 解析セクションを表示
+    checkAndShowAnalysisSection() {
+        // 少なくとも側面観があれば解析セクションを表示
+        if (this.images.lateral) {
             document.getElementById('analysisSection').style.display = 'block';
-            
-            // 解析セクションまでスクロール
             document.getElementById('analysisSection').scrollIntoView({ 
                 behavior: 'smooth', 
                 block: 'start' 
             });
-        };
-        img.src = imageData;
+        }
     }
 
     async analyzePose() {
-        if (!this.currentImage) {
-            alert('画像を選択してください');
+        if (!this.images.lateral) {
+            alert('少なくとも側面観の画像を選択してください');
             return;
         }
 
@@ -115,22 +119,30 @@ class PostureAnalysisApp {
 
             console.log('🔍 姿勢解析を開始...');
 
-            // MediaPipe Poseで骨格検出
-            this.currentPoseResults = await this.poseDetector.detectPose(this.currentImage);
+            // 側面観の解析
+            if (this.images.lateral) {
+                this.poseResults.lateral = await this.poseDetector.detectPose(this.images.lateral);
+                await this.displayPose('lateral', this.images.lateral, this.poseResults.lateral);
+            }
 
-            if (!this.currentPoseResults || !this.currentPoseResults.poseLandmarks) {
-                throw new Error('姿勢が検出できませんでした');
+            // 正面観の解析
+            if (this.images.frontal) {
+                this.poseResults.frontal = await this.poseDetector.detectPose(this.images.frontal);
+                await this.displayPose('frontal', this.images.frontal, this.poseResults.frontal);
             }
 
             console.log('✅ 骨格検出完了');
 
-            // Canvasに骨格を描画
-            this.drawPoseLandmarks(this.currentPoseResults);
-
             // ケンダル法で評価
             const analysisResults = this.kendallAnalyzer.analyzeLateralView(
-                this.currentPoseResults.poseLandmarks
+                this.poseResults.lateral.poseLandmarks
             );
+
+            // 正面観評価（実装予定）
+            if (this.poseResults.frontal) {
+                // TODO: 正面観評価を追加
+                console.log('正面観評価は実装予定');
+            }
 
             console.log('✅ 姿勢評価完了:', analysisResults);
 
@@ -147,23 +159,32 @@ class PostureAnalysisApp {
         }
     }
 
-    drawPoseLandmarks(poseResults) {
-        const canvas = document.getElementById('poseCanvas');
+    async displayPose(view, imageData, poseResults) {
+        const canvasId = view === 'lateral' ? 'lateralCanvas' : 'frontalCanvas';
+        const canvas = document.getElementById(canvasId);
         const ctx = canvas.getContext('2d');
 
-        // 画像を再描画
+        // 画像を読み込む
         const img = new Image();
-        img.onload = () => {
-            ctx.drawImage(img, 0, 0);
+        await new Promise((resolve, reject) => {
+            img.onload = resolve;
+            img.onerror = reject;
+            img.src = imageData;
+        });
 
-            // 骨格を描画
-            this.poseDetector.drawLandmarks(canvas, poseResults);
-        };
-        img.src = this.currentImage;
+        // Canvasサイズを画像に合わせる
+        canvas.width = img.width;
+        canvas.height = img.height;
+
+        // 画像を描画
+        ctx.drawImage(img, 0, 0);
+
+        // 骨格を描画
+        this.poseDetector.drawLandmarks(canvas, poseResults);
     }
 
     async generateReport() {
-        if (!this.currentPoseResults) {
+        if (!this.poseResults.lateral) {
             alert('先に姿勢解析を実行してください');
             return;
         }
@@ -181,8 +202,14 @@ class PostureAnalysisApp {
     }
 
     reset() {
-        this.currentImage = null;
-        this.currentPoseResults = null;
+        this.images = {
+            lateral: null,
+            frontal: null
+        };
+        this.poseResults = {
+            lateral: null,
+            frontal: null
+        };
         
         // UIをリセット
         this.uiController.reset();

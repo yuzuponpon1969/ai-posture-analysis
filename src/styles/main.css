@@ -485,3 +485,87 @@ section h2 {
         font-size: 2.5rem;
     }
 }
+
+/* ========================================
+   2方向入力対応
+   ======================================== */
+.two-direction-upload {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+}
+
+.upload-box h3 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: var(--primary-color);
+    text-align: center;
+}
+
+.image-preview {
+    position: relative;
+    margin-top: 15px;
+}
+
+.image-preview img {
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+}
+
+.btn-remove {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 8px 12px;
+    background: var(--danger-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.btn-remove:hover {
+    background: #C0392B;
+    transform: scale(1.05);
+}
+
+.camera-status {
+    text-align: center;
+    margin-top: 15px;
+    padding: 15px;
+    background: var(--bg-light);
+    border-radius: 8px;
+}
+
+.camera-status p {
+    font-size: 1rem;
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+/* 解析結果2方向表示 */
+.two-direction-preview {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 20px;
+}
+
+.preview-box h3 {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+    color: var(--primary-color);
+    text-align: center;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 768px) {
+    .two-direction-upload,
+    .two-direction-preview {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+}

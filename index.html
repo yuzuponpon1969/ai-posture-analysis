@@ -35,19 +35,47 @@
 
             <!-- アップロードタブ -->
             <div class="tab-content active" data-tab="upload">
-                <div class="upload-area">
-                    <label for="imageUpload" class="upload-label">
-                        <div class="upload-icon">📤</div>
-                        <p>側面観の画像をドラッグ＆ドロップ</p>
-                        <p class="upload-hint">または、クリックしてファイルを選択</p>
-                        <input type="file" id="imageUpload" accept="image/*" hidden>
-                    </label>
+                <div class="two-direction-upload">
+                    <!-- 側面観 -->
+                    <div class="upload-box">
+                        <h3>🧍 側面観</h3>
+                        <div class="upload-area" id="lateralUploadArea">
+                            <label for="lateralImageUpload" class="upload-label">
+                                <div class="upload-icon">📤</div>
+                                <p>側面観の画像</p>
+                                <p class="upload-hint">ドラッグ＆ドロップまたはクリック</p>
+                                <input type="file" id="lateralImageUpload" accept="image/*" hidden>
+                            </label>
+                        </div>
+                        <div id="lateralPreview" class="image-preview" style="display: none;">
+                            <img id="lateralPreviewImg" alt="側面観プレビュー">
+                            <button class="btn-remove" id="lateralRemove">❌ 削除</button>
+                        </div>
+                    </div>
+
+                    <!-- 正面観 -->
+                    <div class="upload-box">
+                        <h3>🙋 正面観（後面観）</h3>
+                        <div class="upload-area" id="frontalUploadArea">
+                            <label for="frontalImageUpload" class="upload-label">
+                                <div class="upload-icon">📤</div>
+                                <p>正面観の画像</p>
+                                <p class="upload-hint">ドラッグ＆ドロップまたはクリック</p>
+                                <input type="file" id="frontalImageUpload" accept="image/*" hidden>
+                            </label>
+                        </div>
+                        <div id="frontalPreview" class="image-preview" style="display: none;">
+                            <img id="frontalPreviewImg" alt="正面観プレビュー">
+                            <button class="btn-remove" id="frontalRemove">❌ 削除</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- カメラタブ -->
             <div class="tab-content" data-tab="camera">
                 <div class="camera-area">
+                    <h3 id="cameraViewTitle">📸 撮影: 側面観</h3>
                     <div class="camera-preview">
                         <video id="cameraVideo" autoplay playsinline></video>
                         <canvas id="cameraCanvas"></canvas>
@@ -63,6 +91,9 @@
                             ⏹️ カメラを停止
                         </button>
                     </div>
+                    <div class="camera-status">
+                        <p id="cameraStatusText">側面観を撮影してください</p>
+                    </div>
                 </div>
             </div>
         </section>
@@ -71,9 +102,20 @@
         <section class="analysis-section" id="analysisSection" style="display: none;">
             <h2>🔍 解析結果</h2>
             
-            <!-- 画像プレビュー -->
-            <div class="preview-container">
-                <canvas id="poseCanvas"></canvas>
+            <!-- 画像プレビュー（2方向） -->
+            <div class="two-direction-preview">
+                <div class="preview-box">
+                    <h3>🧍 側面観</h3>
+                    <div class="preview-container">
+                        <canvas id="lateralCanvas"></canvas>
+                    </div>
+                </div>
+                <div class="preview-box">
+                    <h3>🙋 正面観</h3>
+                    <div class="preview-container">
+                        <canvas id="frontalCanvas"></canvas>
+                    </div>
+                </div>
             </div>
 
             <!-- 解析ボタン -->
